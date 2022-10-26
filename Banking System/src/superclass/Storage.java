@@ -2,22 +2,31 @@ package superclass;
 
 import java.util.Map;
 
-import DBLoadDriver.PersistantLayer;
+import DBLoadDriver.PersistentLayer;
 import customexception.CustomException;
-import interfaces.PersistantLayerPathway;
+import interfaces.PersistentLayerPathway;
 import pojo.Accounts_pojo;
 import pojo.CustomerPojo;
+import pojo.RequestPojo;
 
 public enum Storage {
 
 	VALUES;
 	private long userId;
 	private long accountNumber;
-	private PersistantLayerPathway load=new PersistantLayer();
+	private PersistentLayerPathway load=new PersistentLayer();
 	private Map<Long,CustomerPojo> userDetails;
 	private Map<Long,Map<Long,Accounts_pojo>> accountDetails;
+	private Map<Long,Map<String,RequestPojo>> requestDetails;
 	private Accounts_pojo currentAccountDetails;
+
 	
+	public Map<Long, Map<String, RequestPojo>> getRequestDetails() {
+		return requestDetails;
+	}
+	public void setRequestDetails() throws CustomException {
+		this.requestDetails = load.getRequestMap();
+	}	
 	
 	public Accounts_pojo getCurrentAccountDetails() {
 		return currentAccountDetails;

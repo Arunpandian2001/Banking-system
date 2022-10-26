@@ -1,13 +1,13 @@
 package login;
 
-import DBLoadDriver.PersistantLayer;
+import DBLoadDriver.PersistentLayer;
 import customexception.CustomException;
-import interfaces.PersistantLayerPathway;
+import interfaces.PersistentLayerPathway;
 import superclass.Storage;
 
 public class LoginLayer {
 	
-	PersistantLayerPathway load=new PersistantLayer();
+	PersistentLayerPathway load=new PersistentLayer();
 	
 	
 	

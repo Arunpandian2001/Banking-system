@@ -4,18 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import DBLoadDriver.PersistantLayer;
+import DBLoadDriver.PersistentLayer;
 import customexception.CustomException;
-import interfaces.PersistantLayerPathway;
+import interfaces.PersistentLayerPathway;
 import pojo.Accounts_pojo;
 import pojo.CustomerPojo;
+import pojo.RequestPojo;
 import pojo.TransactionPojo;
 import superclass.Storage;
 import superclass.User;
 
-public class CustomerMethod extends User{
+public class CustomerOperations extends User{
 	
-	private PersistantLayerPathway load=new PersistantLayer();
+	private PersistentLayerPathway load=new PersistentLayer();
 	
 	private long getTime() {
 		return System.currentTimeMillis();
@@ -61,7 +62,7 @@ public class CustomerMethod extends User{
 		Map<Long, Map<Long, Accounts_pojo>> map=Storage.VALUES.getAccountDetails();
 	
 		if(isSenderValid(userId,accountNumber,amount)) {
-			load.withdrawUpdate(amount,accountNumber);
+//			load.withdrawUpdate(amount,accountNumber);
 			map.get(userId).get(accountNumber).setBalance(load.getCurrentBalance(accountNumber));
 			updateWithdraw(accountNumber,amount,getTime(),map.get(userId).get(accountNumber).getBalance());
 			return true;
@@ -81,9 +82,19 @@ public class CustomerMethod extends User{
 		pojo.setMode("Withdraw");
 		pojo.setAccountNumber(userAccount);
 		pojo.setCustomerId(Storage.VALUES.getUserId());
-		pojo.setStatus("Success");
+		pojo.setStatus("Request pending");
 		pojo.setReferenceId(referenceId);
 		load.updateSelfTransactionDetails(pojo);
+		
+		RequestPojo request=new RequestPojo();
+		request.setCustomerId(pojo.getCustomerId());
+		request.setAccountNumber(pojo.getAccountNumber());
+		request.setReferenceId(pojo.getReferenceId());
+		request.setAmount(pojo.getAmount());
+		request.setRequestedTime(pojo.getTimeInMillis());
+		request.setStatus(pojo.getStatus());
+		request.setType("Withdraw");
+		load.updateCustomerWithdrawRequestLog(request);
 	}
 	
 	private void updateDeposit(long userAccount, double amount, long time, double balance) throws CustomException {
@@ -190,9 +201,14 @@ public class CustomerMethod extends User{
 		return false;
 	}
 
-	public List<TransactionPojo> getRecentTransaction(long accountNumber) throws CustomException {
+	public Map<Long,Map<String,TransactionPojo>> getRecentTransaction(long accountNumber,long customerId) throws CustomException {
 		
-		return load.getRecentTransactions(accountNumber);
+		return load.getTransactions(accountNumber,customerId);
+	}
+
+	public Map<Long, Map<String, RequestPojo>> getRequestMap() throws CustomException {
+		Storage.VALUES.setRequestDetails();
+		return Storage.VALUES.getRequestDetails();
 	}
 	
 }

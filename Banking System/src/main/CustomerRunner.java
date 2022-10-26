@@ -2,13 +2,15 @@ package main;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import com.util.getvalues.InputMethods;
 
 import customexception.CustomException;
-import method.CustomerMethod;
+import method.CustomerOperations;
 import pojo.Accounts_pojo;
+import pojo.RequestPojo;
 import pojo.TransactionPojo;
 import superclass.Storage;
 
@@ -17,9 +19,9 @@ public class CustomerRunner {
 	private long id=Storage.VALUES.getUserId();
 	private long accountNumber;
 	private Logger logger=Logger.getLogger(CustomerRunner.class.getName());
-	private CustomerMethod method=new CustomerMethod();
+	private CustomerOperations method=new CustomerOperations();
 	private InputMethods input=new InputMethods();
-	private static List<Long> accounts_List=new ArrayList<>();
+	private List<Long> accounts_List=new ArrayList<>();
 	private static boolean loop=true;
 	
 	public void customer() {
@@ -52,18 +54,19 @@ public class CustomerRunner {
 
 				}
 			} catch (CustomException e) {
-				logger.warning(e+"");
+				e.printStackTrace();
 			}
 			while(loop) {
 				logger.info("Enter any one option");
-				logger.info("\t1)Balance\n 2)Deposit\n 3)Withdraw\n 4)Transfer\n 5)Print user info \n6)Last 5 Transactions \n 7)Logout");
+				logger.info("\t1)Balance\n 2)Deposit\n 3)Withdraw\n 4)Transfer\n 5)View request status\n "
+						+ "6)Print account info \n 7)Last 5 Transactions \n 8)Logout");
 				int choice=input.isInteger();
 				switch(choice) {
 					case 1:{
 							try {
 								logger.info("Balance:: "+method.balance());
 							} catch (CustomException e) {
-								logger.warning(e+"");
+								e.printStackTrace();
 							}
 							break;
 						}
@@ -78,7 +81,7 @@ public class CustomerRunner {
 							logger.info("The amount is deposited.");
 							
 						} catch (CustomException e) {
-							logger.warning(e+"");
+							e.printStackTrace();
 						}
 						break;
 					}
@@ -89,10 +92,10 @@ public class CustomerRunner {
 						
 						try {
 							method.toWithdraw(amount);
-							logger.info("The amount is withdrawn.");
+							logger.info("The request has been placed.");
 							
 						} catch (CustomException e) {
-							logger.warning(e+"");
+							e.printStackTrace();
 						}
 						break;
 					}
@@ -107,11 +110,34 @@ public class CustomerRunner {
 						try {
 							method.transferAmount(receiverAccountNumber,amount,password);
 						} catch (CustomException e) {
-							logger.warning(e+"");
+							e.printStackTrace();
 						}
 						break;
 					}
+					
 					case 5:{
+						Map<Long, Map<String, RequestPojo>> map;
+						try {
+							map = method.getRequestMap();
+							Map<String,RequestPojo> innerMap=map.get(id);
+							for(Map.Entry<String,RequestPojo> element: innerMap.entrySet()) {
+								RequestPojo pojo=element.getValue();
+								System.out.println("-----------------------------------------------------------");
+								System.out.println("CUSTOMER_ID :: "+pojo.getCustomerId());
+								System.out.println("ACCOUNT_NUMBER :: "+pojo.getAccountNumber());
+								System.out.println("REFERENCE_ID ::"+pojo.getReferenceId());
+								System.out.println("AMOUNT ::"+pojo.getAmount());
+								System.out.println("REQUESTED_TIME ::"+pojo.getRequestedTime());
+								System.out.println("PROCESSED_TIME ::"+pojo.getProcessdeTime());
+								System.out.println("STATUS ::"+pojo.getStatus());
+								System.out.println("REQUEST_TYPE ::"+pojo.getType());
+							}
+						} catch (CustomException e) {
+							e.printStackTrace();
+						}
+					}
+					
+					case 6:{
 						Accounts_pojo pojo=Storage.VALUES.getCurrentAccountDetails();
 						
 						logger.info("Customer id:"+pojo.getCustomerId());
@@ -123,32 +149,38 @@ public class CustomerRunner {
 						break;
 					}
 					
-					case 6:{
+					case 7:{
 						try {
-							List<TransactionPojo> list=method.getRecentTransaction(Storage.VALUES.getAccountNumber());
-							for(TransactionPojo pojo:list) {
-								System.out.println("-------------------------------------------------------------");
-								System.out.println("Reference ID :: "+pojo.getReferenceId());
-								System.out.println("Customer id ::"+pojo.getCustomerId());
-								System.out.println("Account number ::"+pojo.getAccountNumber());
-								System.out.println("Secondary account ::"+pojo.getSecondary());
-								System.out.println("Transaction id ::"+pojo.getTransactionId());
-								System.out.println("Transaction type ::"+pojo.getTransactionTypes());
-								System.out.println("Mode of Transaction ::"+pojo.getMode());
-								System.out.println("Amount ::"+pojo.getAmount());
-								System.out.println("Time ::"+pojo.getTimeInMillis());
-								System.out.println("Closing Balance ::"+pojo.getClosingBalance());
-								System.out.println("Status ::"+pojo.getStatus());
-								System.out.println("------------------------------------------------------------------");
+							Map<Long,Map<String,TransactionPojo>> list=method.getRecentTransaction(Storage.VALUES.getAccountNumber(),Storage.VALUES.getUserId());
+							for(Map.Entry<Long, Map<String, TransactionPojo>> map: list.entrySet()) {
+								Map<String, TransactionPojo> innerMap=map.getValue();
 
+								for(Map.Entry<String, TransactionPojo> element:innerMap.entrySet()) {
+									TransactionPojo pojo=element.getValue();
+									System.out.println("-------------------------------------------------------------------");
+									System.out.println("Reference id:: "+pojo.getReferenceId());
+									System.out.println("Customer id :: "+pojo.getCustomerId());
+									System.out.println("Account number :: "+pojo.getAccountNumber());
+									System.out.println("Secondary Account :: "+pojo.getSecondary());
+									System.out.println("Transaction id :: "+pojo.getTransactionId());
+									System.out.println("Transaction type :: "+pojo.getTransactionTypes());
+									System.out.println("Mode of Transaction :: "+pojo.getMode());
+									System.out.println("Transaction Amount:: "+pojo.getAmount());
+									System.out.println("Transaction Time:: "+pojo.getTimeInMillis());
+									System.out.println("Closing balance :: "+pojo.getClosingBalance());
+									System.out.println("Transaction Status :: "+pojo.getStatus());
+									System.out.println("-------------------------------------------------------------------");
+								
+								}
 							}
+
 						} catch (CustomException e) {
 							e.printStackTrace();
 						}
 						break;
 					}
 					
-					case 7:{
+					case 8:{
 						if(accounts_List.size()==1) {
 							logout();
 						}
@@ -168,6 +200,9 @@ public class CustomerRunner {
 						}
 						
 						break;
+					}
+					default:{
+						System.err.println("Enter valid option");
 					}
 				}
 				

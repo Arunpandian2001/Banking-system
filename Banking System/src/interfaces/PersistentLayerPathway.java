@@ -6,9 +6,10 @@ import java.util.Map;
 import customexception.CustomException;
 import pojo.Accounts_pojo;
 import pojo.CustomerPojo;
+import pojo.RequestPojo;
 import pojo.TransactionPojo;
 
-public interface PersistantLayerPathway {
+public interface PersistentLayerPathway {
 	
 	Map<Long, CustomerPojo> getLoginMap() throws CustomException;//USERPOJO  //cant replace parent in the place of child
 	
@@ -27,6 +28,20 @@ public interface PersistantLayerPathway {
 	void updateSelfTransactionDetails(TransactionPojo pojo) throws CustomException; // combine with previous
 	
 	 Accounts_pojo getAccountPojoQuery(long accountNumber) throws CustomException;//swami
-	 
-	 List<TransactionPojo> getRecentTransactions(long accountNumber) throws CustomException;
+
+	Map<Long, Map<String, TransactionPojo>> getTransactions(long accountNumber, long customerId) throws CustomException;
+
+	void updateCustomerWithdrawRequestLog(RequestPojo request) throws CustomException;
+
+	List<RequestPojo> getRequestDetails() throws CustomException;
+
+	void updateRequestStatus(RequestPojo request, String referenceId) throws CustomException;
+
+	void updateTransactionAfterVerification(TransactionPojo pojo, String referenceId) throws CustomException;
+
+	Map<Long,Map<String,RequestPojo>> getRequestMap() throws CustomException;
+
+	void declinedRequestInTransaction(double amount, String referenceId,long customerId) throws CustomException;
+
+	void acceptedRequestInTransaction(double amount, String referenceId, long customerId)throws CustomException;
 }
