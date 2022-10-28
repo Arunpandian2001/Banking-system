@@ -107,7 +107,7 @@ public class AdminRunner {
 							System.out.println("Enter the number of customers");
 							int size=input.isInteger();
 							Long[] customerIds=new Long[size];
-							System.out.println("Enter the customer ids");
+							System.out.println("Enter the account numbers");
 							for(int i=0;i<size;i++) {
 								customerIds[i]=input.isLong();
 							}
